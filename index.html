@@ -282,12 +282,12 @@ body{
   cursor:pointer;
   opacity:.45;
   transition:opacity .2s;
-  display:flex;
-  align-items:center;
-  justify-content:center;
 }
 .edge:hover{opacity:1}
 .edge span{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
   width:2.1em;height:2.1em;
   background:rgba(255,255,255,.92);
   border:1.5px solid var(--ink);
@@ -298,6 +298,10 @@ body{
   justify-content:center;
   font-family:var(--mono);
 }
+/* on the menu screen the left button drops below the menu items */
+.edge.low span{top:auto;bottom:15%;transform:translateX(-50%)}
+/* hide the paging buttons while a modal is open */
+.modal .edge{opacity:0;pointer-events:none}
 #edgeL{left:0}
 #edgeR{right:0}
 
@@ -532,6 +536,8 @@ function refreshHotspotVisibility(){
   } else {
     navline.style.opacity = '0';
   }
+  // keep the left paging button clear of the menu items on the menu screen
+  document.getElementById('edgeL').classList.toggle('low', cur === 2);
 }
 function go(n){
   if (n < 1 || n > maxPage) return;
@@ -697,6 +703,12 @@ document.addEventListener('keydown', e => {
   else if (/^[1-9]$/.test(e.key)) { go(Number(e.key)); }
   else if (e.key === '0') { go(10); }
 });
+
+/* hide the paging buttons whenever a modal is open */
+new MutationObserver(() => {
+  const anyOpen = ['scanOv', 'nearbyOv', 'previewOv'].some(id => document.getElementById(id).classList.contains('open'));
+  stage.classList.toggle('modal', anyOpen);
+}).observe(stage, {subtree: true, attributes: true, attributeFilter: ['class']});
 
 /* boot */
 go(1);
