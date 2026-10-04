@@ -271,6 +271,13 @@ body{
 }
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ---------- added content layers (text + covers) ---------- */
+.cover{position:absolute;z-index:7;background:#F7F7F7;pointer-events:none}
+.layer{position:absolute;z-index:8;pointer-events:none}
+.layer .h{font-weight:700;font-size:clamp(7.5px,min(1.38vw,2.454vh),19px);color:var(--green);margin-bottom:.45em;letter-spacing:.01em}
+.layer .p{font-size:clamp(7px,min(1.3vw,2.311vh),18px);line-height:1.55;color:#15201B}
+.layer .m{font-family:var(--mono);font-size:clamp(6.5px,min(1vw,1.778vh),14px);line-height:1.6;color:#5B6560}
+
 /* ---------- prev/next edge zones ---------- */
 .edge{
   position:absolute;
@@ -512,6 +519,50 @@ stage.appendChild(qrImg);
 ].forEach(([x, y, w, h, a, fn]) => {
   const b = mkHotspot(x, y, w, h, a, fn);
   b.dataset.only = '9';
+});
+
+/* ============ added text content (team request: relevant copy + fill blanks) ============ */
+/* pale covers over the template placeholder paragraphs */
+const COVERS = [
+  [1, 0.062, 0.645, 0.265, 0.235],
+  [3, 0.062, 0.645, 0.265, 0.235],
+  [4, 0.062, 0.642, 0.418, 0.158]
+];
+COVERS.forEach(([p, x, y, w, h]) => {
+  const d = document.createElement('div');
+  d.className = 'cover ov';
+  d.style.cssText = 'left:' + (x * 100) + '%;top:' + (y * 100) + '%;width:' + (w * 100) + '%;height:' + (h * 100) + '%;';
+  d.dataset.only = String(p);
+  stage.appendChild(d);
+});
+
+const TEXTS = [
+  { p: 1, x: 0.077, y: 0.652, w: 0.245,
+    html: '<div class="p">How your building ages in a changing climate. Where carbon-negative bricks prevent failure. Which funding can carry the work. RECon turns scattered records into renovation plans that last.</div>' },
+  { p: 3, x: 0.077, y: 0.652, w: 0.245,
+    html: '<div class="p">Every property sits in a local context. See the council projects, heat and moisture exposure, green corridors and active rebates around your address, so the upgrade you plan matches the conditions you face.</div>' },
+  { p: 4, x: 0.077, y: 0.648, w: 0.40,
+    html: '<div class="p">Doing nothing is still a decision. Scenario analysis shows how materials degrade under heat, moisture and settling, what deferred repairs would cost, and where upgrading to carbon-negative bricks pays for itself.</div>' },
+  { p: 2, x: 0.43, y: 0.38, w: 0.29,
+    html: '<div class="h">Where to start</div><div class="p">Run a feasibility check on one property to see where carbon-negative bricks pay for themselves. Or open a tool from the menu to explore local context, collapse scenarios, data sources and sharing.</div>' },
+  { p: 5, x: 0.62, y: 0.52, w: 0.30,
+    html: '<div class="h">Sourced and checked</div><div class="p">Every figure traces back to a source: sensor history, climate projections, council records and material tests. RECon shows what we know, what we assume, and what still needs a site check.</div>' },
+  { p: 7, x: 0.53, y: 0.19, w: 0.38,
+    html: '<div class="h">Our goal is simple</div><div class="p">Make resilient renovation the obvious choice. We connect monitoring data, material science and funding so that the right upgrade is also the sensible one.</div>' },
+  { p: 9, x: 0.62, y: 0.325, w: 0.31,
+    html: '<div class="p">What we monitor, we can manage. Sensor history and forecasts are reviewed each season, and every prediction is checked against what actually happened.</div>' },
+  { p: 10, x: 0.045, y: 0.27, w: 0.22,
+    html: '<div class="h">One record per project</div><div class="p">Monitoring, predictions, site notes and updates stay together, from the first scan through to handover.</div>' },
+  { p: 3, x: 0.10, y: 0.875, w: 0.31,
+    html: '<div class="m">Illustrative demo data. Live council and climate feeds connect in the product build.</div>' }
+];
+TEXTS.forEach(t => {
+  const d = document.createElement('div');
+  d.className = 'layer ov';
+  d.style.cssText = 'left:' + (t.x * 100) + '%;top:' + (t.y * 100) + '%;width:' + (t.w * 100) + '%;';
+  d.dataset.only = String(t.p);
+  d.innerHTML = t.html;
+  stage.appendChild(d);
 });
 
 /* ============ page switching ============ */
