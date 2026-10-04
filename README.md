@@ -14,10 +14,13 @@ and assembled into a clickable app demo. No redrawn visuals: what you see is the
 | Element | Action |
 |---|---|
 | Nav: Home / About / Feasibility / My Constructions | switches to the matching screen |
-| Nav: Tools | opens the 4-item tools dropdown |
+| Nav: Tools | opens the Tools menu screen |
+| Tools menu items (What's around, Preventing collapse, Data sources, Phone QR) | opens that tool's screen |
 | Home: "View feasibility" | opens the feasibility screen |
 | Feasibility: "Analyse my building" | plays the scan animation overlay |
-| Left / right screen edges | prev / next screen (arrow appears on hover) |
+| Map on "What's around" | opens the nearby panel |
+| Bottom-right corner of any screen | turns to the next screen |
+| Left / right screen edges | prev / next screen (arrow visible at rest) |
 | Keys 1-9, 0 | jump to screen 1-10 |
 | Esc | close overlays |
 
