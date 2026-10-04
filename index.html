@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RECon · Home of Renovation &amp; Building</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23286359'/%3E%3C/svg%3E">
+<style>
+/* ============================================================
+   RECon app demo. Screens are the team's own storyboard pages
+   (captured from the Canva presentation). Interactive layer on top.
+   Climate Hack-tion 2026 build.
+   ============================================================ */
+:root{
+  --green:#286359;
+  --green-d:#1D4A42;
+  --orange:#E1824F;
+  --btn:#FF7F3B;
+  --ink:#101613;
+  --paper:#FFFFFF;
+  --sans:"Inter","Helvetica Neue",Arial,sans-serif;
+  --mono:"SF Mono","DM Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#0E1114;
+  font-family:var(--sans);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* ---------- stage ---------- */
+#stage{
+  position:relative;
+  width:min(100vw, calc(100vh * 16 / 9));
+  aspect-ratio:16/9;
+  margin:0 auto;
+  top:50%;
+  transform:translateY(-50%);
+  background:#fff;
+  overflow:hidden;
+}
+#stage img.screen{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:opacity .28s ease;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+#stage img.screen.on{opacity:1}
+
+/* ---------- hotspots ---------- */
+.hs{
+  position:absolute;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+  z-index:10;
+  padding:0;
+}
+.hs:focus-visible{outline:2px solid var(--btn);outline-offset:2px}
+.hs:hover{background:rgba(40,99,89,.07)}
+
+/* active nav underline */
+#navline{
+  position:absolute;
+  height:0.45%;
+  background:var(--green);
+  z-index:9;
+  transition:left .25s ease,width .25s ease,opacity .2s;
+  border-radius:0;
+  pointer-events:none;
+}
+
+/* ---------- tools dropdown ---------- */
+#toolsMenu{
+  position:absolute;
+  z-index:30;
+  display:none;
+  min-width:16.5%;
+  background:#fff;
+  border:1.5px solid var(--ink);
+  box-shadow:0 14px 34px rgba(16,22,19,.16);
+}
+#toolsMenu.open{display:block}
+#toolsMenu button{
+  display:block;
+  width:100%;
+  text-align:left;
+  background:#fff;
+  border:none;
+  border-bottom:1px solid #E6E4DE;
+  padding:3.2% 6.5%;
+  font-family:var(--sans);
+  font-size:clamp(9px,1.05vw,15px);
+  font-weight:600;
+  letter-spacing:.02em;
+  color:var(--ink);
+  cursor:pointer;
+}
+#toolsMenu button:last-child{border-bottom:none}
+#toolsMenu button:hover{background:#F2F6F4;color:var(--green-d)}
+#toolsMenu button .k{color:var(--green);font-family:var(--mono);font-size:.78em;margin-right:.6em}
+
+/* ---------- scan overlay (page 09) ---------- */
+#scanOv{
+  position:absolute;
+  inset:0;
+  z-index:40;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(16,22,19,.35);
+}
+#scanOv.open{display:flex}
+#scanCard{
+  width:34%;
+  background:#fff;
+  border:2px solid var(--ink);
+  padding:2.6% 3%;
+  box-shadow:0 22px 60px rgba(0,0,0,.28);
+}
+#scanCard .t{
+  font-family:var(--sans);
+  font-weight:750;
+  font-size:clamp(13px,1.35vw,21px);
+  letter-spacing:-.01em;
+}
+#scanCard .t .g{color:var(--green)}
+#scanCard .t .o{color:var(--orange)}
+#scanCard .sub{
+  color:#5B6560;
+  font-size:clamp(9px,.95vw,13.5px);
+  margin-top:.5em;
+}
+#scanLines{margin-top:1.4em;display:grid;gap:.6em}
+.sl{
+  display:flex;
+  gap:.7em;
+  align-items:baseline;
+  font-family:var(--mono);
+  font-size:clamp(8.5px,.92vw,13px);
+  color:#3E4A44;
+  opacity:0;
+  transform:translateY(3px);
+  transition:opacity .3s,transform .3s;
+}
+.sl.show{opacity:1;transform:none}
+.sl .dot{
+  width:.5em;height:.5em;
+  background:var(--btn);
+  flex:none;
+  transform:translateY(-.05em);
+}
+.sl.done .dot{background:var(--green)}
+.sl.done{color:var(--ink)}
+#scanBar{
+  height:3px;
+  background:#E3E3E0;
+  margin-top:1.5em;
+}
+#scanBar i{
+  display:block;height:100%;width:0;
+  background:var(--green);
+  transition:width .45s;
+}
+#scanDone{
+  display:none;
+  margin-top:1.2em;
+  font-family:var(--mono);
+  font-size:clamp(8.5px,.92vw,13px);
+  color:var(--green-d);
+}
+#scanDone.show{display:block}
+
+/* ---------- prev/next edge zones ---------- */
+.edge{
+  position:absolute;
+  top:0;bottom:0;
+  width:5.5%;
+  z-index:20;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+  opacity:0;
+  transition:opacity .2s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.edge:hover{opacity:1}
+.edge span{
+  width:2.1em;height:2.1em;
+  background:rgba(255,255,255,.92);
+  border:1.5px solid var(--ink);
+  color:var(--ink);
+  font-size:clamp(10px,1.1vw,16px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--mono);
+}
+#edgeL{left:0}
+#edgeR{right:0}
+
+/* ---------- page indicator / misc ---------- */
+#pageno{
+  position:absolute;
+  right:1.1%;
+  bottom:1.6%;
+  z-index:20;
+  font-family:var(--mono);
+  font-size:clamp(8px,.8vw,11px);
+  color:#8A948E;
+  background:rgba(255,255,255,.85);
+  padding:.25em .6em;
+  opacity:.01;
+  transition:opacity .25s;
+  pointer-events:none;
+}
+#stage:hover #pageno{opacity:.85}
+
+/* focus ring suppressed on body */
+:focus{outline:none}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <!-- screens (preloaded at boot) -->
+  <!-- hotspots + extras injected per page by script -->
+  <div id="navline" style="opacity:0"></div>
+
+  <button class="edge" id="edgeL" aria-label="Previous page"><span>&#8249;</span></button>
+  <button class="edge" id="edgeR" aria-label="Next page"><span>&#8250;</span></button>
+
+  <div id="toolsMenu">
+    <button data-goto="4"><span class="k">01</span>What's around</button>
+    <button data-goto="5"><span class="k">02</span>Preventing collapse</button>
+    <button data-goto="6"><span class="k">03</span>Data sources</button>
+    <button data-goto="7"><span class="k">04</span>Phone QR</button>
+  </div>
+
+  <div id="scanOv">
+    <div id="scanCard">
+      <div class="t"><span class="g">Analysing</span> <span class="o">your building</span></div>
+      <div class="sub">Reading monitoring history, modelling climate stress, costing the retrofit.</div>
+      <div id="scanLines"></div>
+      <div id="scanBar"><i></i></div>
+      <div id="scanDone">Feasibility report ready. Climate exposure: 88% (High).</div>
+    </div>
+  </div>
+
+  <div id="pageno"></div>
+</div>
+
+<script>
+/* ============ config ============ */
+const PAGES = [1,2,3,4,5,6,7,8,9,10];
+let cur = 1;
+let maxPage = 10;
+
+/* nav hotspot template (normalized to stage) */
+const NAV = {
+  brand:   [0.100, 0.045, 0.095, 0.060],   // x,y,w,h
+  home:    [0.268, 0.058, 0.062, 0.045],
+  about:   [0.396, 0.058, 0.062, 0.045],
+  feas:    [0.520, 0.058, 0.092, 0.045],
+  constr:  [0.622, 0.058, 0.183, 0.045],
+  tools:   [0.868, 0.058, 0.066, 0.048]
+};
+/* page -> which nav slot triggers what; pages 4-7 have TOOLS in nav, others show page badge at same slot */
+const IS_TOOLS_PAGE = p => p >= 4 && p <= 7;
+
+/* section mapping for active underline: [startX, width] under nav item */
+const SECTION = {
+  home:    [0.268, 0.062],
+  about:   [0.396, 0.062],
+  feas:    [0.520, 0.092],
+  constr:  [0.622, 0.183],
+  tools:   [0.868, 0.066]
+};
+
+const stage = document.getElementById('stage');
+const toolsMenu = document.getElementById('toolsMenu');
+const navline = document.getElementById('navline');
+const scanOv = document.getElementById('scanOv');
+
+/* ============ build screens ============ */
+PAGES.forEach(n => {
+  const img = document.createElement('img');
+  img.className = 'screen' + (n === 1 ? ' on' : '');
+  img.dataset.page = n;
+  img.src = 'assets/pages/' + String(n).padStart(2, '0') + '.png';
+  img.alt = 'RECon screen ' + n;
+  img.draggable = false;
+  stage.insertBefore(img, stage.firstChild);
+});
+
+/* ============ hotspots ============ */
+function mkHotspot(x, y, w, h, aria, fn){
+  const b = document.createElement('button');
+  b.className = 'hs';
+  b.style.left = (x * 100) + '%';
+  b.style.top = (y * 100) + '%';
+  b.style.width = (w * 100) + '%';
+  b.style.height = (h * 100) + '%';
+  b.setAttribute('aria-label', aria);
+  b.addEventListener('click', e => { e.stopPropagation(); fn(); });
+  stage.appendChild(b);
+  return b;
+}
+
+/* static nav hotspots (apply to all pages) */
+mkHotspot(...NAV.brand, 'RECon home', () => go(1));
+mkHotspot(...NAV.home, 'Home', () => go(1));
+mkHotspot(...NAV.about, 'About', () => go(8));
+mkHotspot(...NAV.feas, 'Feasibility', () => go(9));
+mkHotspot(...NAV.constr, 'My Constructions', () => go(10));
+mkHotspot(...NAV.tools, 'Tools', () => toggleTools());
+
+/* CTA hotspots per page */
+const CTAS = {
+  1: [ [0.28, 0.478, 0.16, 0.075, 'View feasibility', () => go(9)] ],
+  2: [ [0.28, 0.478, 0.16, 0.075, 'View feasibility', () => go(9)] ],
+  3: [ [0.28, 0.478, 0.16, 0.075, 'View feasibility', () => go(9)] ],
+  8: [],
+  9: [ [0.055, 0.36, 0.24, 0.085, 'Analyse my building', () => runScan()] ],
+  10: []
+};
+Object.entries(CTAS).forEach(([p, items]) => {
+  items.forEach(([x, y, w, h, a, fn]) => {
+    const b = mkHotspot(x, y, w, h, a, fn);
+    b.dataset.only = p;
+  });
+});
+
+/* ============ page switching ============ */
+function refreshHotspotVisibility(){
+  document.querySelectorAll('.hs[data-only]').forEach(b => {
+    b.style.display = (String(cur) === b.dataset.only) ? 'block' : 'none';
+  });
+  // nav underline per section
+  let sec = null;
+  if (cur <= 3) sec = 'home';
+  else if (cur >= 4 && cur <= 7) sec = 'tools';
+  else if (cur === 8) sec = 'about';
+  else if (cur === 9) sec = 'feas';
+  else if (cur === 10) sec = 'constr';
+  if (sec){
+    const [sx, sw] = SECTION[sec];
+    navline.style.left = (sx * 100) + '%';
+    navline.style.top = '10.2%';
+    navline.style.width = (sw * 100) + '%';
+    navline.style.opacity = '1';
+  } else {
+    navline.style.opacity = '0';
+  }
+}
+function go(n){
+  if (n < 1 || n > maxPage) return;
+  cur = n;
+  document.querySelectorAll('img.screen').forEach(im => {
+    im.classList.toggle('on', Number(im.dataset.page) === n);
+  });
+  document.getElementById('pageno').textContent = n + ' / ' + maxPage;
+  toolsMenu.classList.remove('open');
+  refreshHotspotVisibility();
+}
+function toggleTools(){
+  const open = toolsMenu.classList.toggle('open');
+  if (open){
+    toolsMenu.style.left = (0.845 * 100) + '%';
+    toolsMenu.style.top = '11.5%';
+  }
+}
+toolsMenu.querySelectorAll('button').forEach(b => {
+  b.addEventListener('click', e => { e.stopPropagation(); go(Number(b.dataset.goto)); });
+});
+document.addEventListener('click', () => toolsMenu.classList.remove('open'));
+
+/* ============ scan overlay (feasibility page) ============ */
+const SCAN_STEPS = [
+  'reading monitoring data · 12 months',
+  'climate stress model · heat + moisture',
+  'failure prediction · model v2.4',
+  'cost-benefit engine · carbon brick plan'
+];
+function runScan(){
+  const box = document.getElementById('scanLines');
+  box.innerHTML = '';
+  document.getElementById('scanBar').querySelector('i').style.width = '0%';
+  document.getElementById('scanDone').classList.remove('show');
+  scanOv.classList.add('open');
+  let i = 0;
+  const t = setInterval(() => {
+    if (i >= SCAN_STEPS.length){
+      clearInterval(t);
+      document.getElementById('scanDone').classList.add('show');
+      setTimeout(() => scanOv.classList.remove('open'), 1500);
+      return;
+    }
+    const row = document.createElement('div');
+    row.className = 'sl';
+    row.innerHTML = '<span class="dot"></span><span>' + SCAN_STEPS[i] + '</span>';
+    box.appendChild(row);
+    requestAnimationFrame(() => row.classList.add('show'));
+    const prev = box.children[i - 1];
+    if (prev) prev.classList.add('done');
+    document.getElementById('scanBar').querySelector('i').style.width = Math.round((i + 1) / SCAN_STEPS.length * 100) + '%';
+    i++;
+  }, 700);
+}
+scanOv.addEventListener('click', e => {
+  if (e.target === scanOv) scanOv.classList.remove('open');
+});
+
+/* ============ edge nav + keyboard ============ */
+document.getElementById('edgeL').addEventListener('click', () => go(cur - 1));
+document.getElementById('edgeR').addEventListener('click', () => go(cur + 1));
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
+  else if (e.key === 'Escape') { toolsMenu.classList.remove('open'); scanOv.classList.remove('open'); }
+  else if (/^[1-9]$/.test(e.key)) { go(Number(e.key)); }
+  else if (e.key === '0') { go(10); }
+});
+
+/* boot */
+go(1);
+</script>
+</body>
+</html>
