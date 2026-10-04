@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RECon · Home of Renovation &amp; Building</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23286359'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/vendor/leaflet.css">
 <style>
 /* ============================================================
    RECon app demo. Screens are the team's own storyboard pages
@@ -189,7 +190,7 @@ body{
 }
 #nearbyOv.open{display:flex}
 #nearbyCard{
-  width:38%;
+  width:62%;
   background:#fff;
   border:2px solid var(--ink);
   padding:2.6% 3%;
@@ -213,6 +214,62 @@ body{
   color:#5B6560;font-family:var(--mono);
 }
 #nearbyClose:hover{color:var(--ink)}
+#mapCanvas{width:100%;aspect-ratio:16/8.6;border:1.5px solid var(--ink);margin-top:1em;background:#E9EBE7;position:relative;z-index:1}
+
+/* ---------- preview card + toast ---------- */
+#previewOv{
+  position:absolute;
+  inset:0;
+  z-index:42;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(16,22,19,.35);
+}
+#previewOv.open{display:flex}
+#previewCard{
+  width:40%;
+  background:#fff;
+  border:2px solid var(--ink);
+  padding:2.6% 3%;
+  box-shadow:0 22px 60px rgba(0,0,0,.28);
+  position:relative;
+}
+#previewCard .t{
+  font-weight:750;
+  font-size:clamp(13px,1.35vw,21px);
+  letter-spacing:-.01em;
+}
+#previewCard .t .g{color:var(--green)}
+#previewCard .t .o{color:var(--orange)}
+#previewCard .sub{color:#5B6560;font-size:clamp(9px,.95vw,13.5px);margin-top:.5em}
+#previewList{margin-top:1.3em;display:grid;gap:.7em}
+#previewClose{
+  position:absolute;
+  top:.5em;right:.7em;
+  background:none;border:none;cursor:pointer;
+  font-size:clamp(11px,1.05vw,15px);
+  color:#5B6560;font-family:var(--mono);
+}
+#previewClose:hover{color:var(--ink)}
+#toast{
+  position:absolute;
+  bottom:5%;
+  left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:rgba(16,22,19,.93);
+  color:#fff;
+  font-family:var(--mono);
+  font-size:clamp(9px,.92vw,13px);
+  padding:.75em 1.2em;
+  opacity:0;
+  transition:opacity .25s,transform .25s;
+  pointer-events:none;
+  z-index:60;
+  max-width:80%;
+  text-align:center;
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ---------- prev/next edge zones ---------- */
 .edge{
@@ -296,20 +353,32 @@ body{
     <div id="nearbyCard">
       <button id="nearbyClose" aria-label="Close">&#10005;</button>
       <div class="t"><span class="g">What's</span> <span class="o">around</span></div>
-      <div class="sub">12 Jacaranda Street, Ryde. Illustrative demo data.</div>
+      <div class="sub">Lindfield / Killara area. Drag and zoom the map, click the markers. Illustrative demo data.</div>
+      <div id="mapCanvas"></div>
       <div id="nearbyList">
         <div class="sl done show"><span class="dot"></span><span>3 council climate-resilience upgrades planned nearby (2026-27)</span></div>
         <div class="sl done show"><span class="dot"></span><span>Summer heat index 4.2°C above metro average at this address</span></div>
         <div class="sl done show"><span class="dot"></span><span>2 active incentives: federal rebate + state resilience program</span></div>
         <div class="sl done show"><span class="dot"></span><span>Green corridor: Lane Cove National Park, 2.4 km</span></div>
       </div>
-      <div class="sub" style="margin-top:1.1em">Click anywhere to close.</div>
     </div>
   </div>
+
+  <div id="previewOv">
+    <div id="previewCard">
+      <button id="previewClose" aria-label="Close">&#10005;</button>
+      <div class="t" id="previewTitle"></div>
+      <div class="sub" id="previewSub">12 Jacaranda Street, Ryde. Illustrative demo data.</div>
+      <div id="previewList"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
 
   <div id="pageno"></div>
 </div>
 
+<script src="assets/vendor/leaflet.js"></script>
 <script>
 /* ============ config ============ */
 const PAGES = [1,2,3,4,5,6,7,8,9,10];
@@ -370,19 +439,21 @@ function mkHotspot(x, y, w, h, aria, fn){
 /* static nav hotspots (apply to all pages) */
 mkHotspot(...NAV.brand, 'RECon home', () => go(1));
 mkHotspot(...NAV.home, 'Home', () => go(1));
-mkHotspot(...NAV.about, 'About', () => go(8));
-mkHotspot(...NAV.feas, 'Feasibility', () => go(9));
-mkHotspot(...NAV.constr, 'My Constructions', () => go(10));
-mkHotspot(...NAV.tools, 'Tools menu', () => go(3));
+mkHotspot(...NAV.about, 'About', () => go(7));
+mkHotspot(...NAV.feas, 'Feasibility', () => go(8));
+mkHotspot(...NAV.constr, 'My Constructions', () => go(9));
+/* the nav slot that reads "TOOLS" (tools screens only) opens the menu screen */
+const toolsHot = mkHotspot(...NAV.tools, 'Tools menu', () => go(2));
+toolsHot.dataset.only = '3,4,5,6';
+/* hamburger (top-left) opens the menu screen on every screen except the menu itself */
+const burgerHot = mkHotspot(0.046, 0.040, 0.058, 0.066, 'Menu', () => go(2));
+burgerHot.dataset.only = '1,3,4,5,6,7,8,9,10';
 
 /* CTA hotspots per page */
 const CTAS = {
-  1: [ [0.28, 0.478, 0.16, 0.075, 'View feasibility', () => go(9)] ],
-  2: [ [0.28, 0.478, 0.16, 0.075, 'View feasibility', () => go(9)] ],
-  3: [ [0.28, 0.478, 0.16, 0.075, 'View feasibility', () => go(9)] ],
-  8: [],
-  9: [ [0.055, 0.36, 0.24, 0.085, 'Analyse my building', () => runScan()] ],
-  10: []
+  1: [ [0.28, 0.478, 0.16, 0.075, 'View feasibility', () => go(8)] ],
+  2: [ [0.28, 0.478, 0.16, 0.075, 'View feasibility', () => go(8)] ],
+  8: [ [0.055, 0.36, 0.24, 0.085, 'Analyse my building', () => runScan()] ]
 };
 Object.entries(CTAS).forEach(([p, items]) => {
   items.forEach(([x, y, w, h, a, fn]) => {
@@ -391,16 +462,16 @@ Object.entries(CTAS).forEach(([p, items]) => {
   });
 });
 
-/* tools menu items on the menu screen (page 3 shows the design's own menu) */
-const MENU3 = [
-  [0.005, 0.371, 0.190, 0.054, "Tools: What's around", () => go(4)],
-  [0.005, 0.467, 0.195, 0.054, 'Tools: Preventing collapse', () => go(5)],
-  [0.005, 0.556, 0.150, 0.054, 'Tools: Data sources', () => go(6)],
-  [0.005, 0.643, 0.110, 0.054, 'Tools: Phone QR', () => go(7)]
+/* tools menu items on the menu screen (page 2 shows the design's own menu) */
+const MENU2 = [
+  [0.005, 0.369, 0.190, 0.051, "Tools: What's around", () => go(3)],
+  [0.005, 0.466, 0.195, 0.051, 'Tools: Preventing collapse', () => go(4)],
+  [0.005, 0.555, 0.150, 0.051, 'Tools: Data sources', () => go(5)],
+  [0.005, 0.644, 0.110, 0.051, 'Tools: Phone QR', () => go(6)]
 ];
-MENU3.forEach(([x, y, w, h, a, fn]) => {
+MENU2.forEach(([x, y, w, h, a, fn]) => {
   const b = mkHotspot(x, y, w, h, a, fn);
-  b.dataset.only = '3';
+  b.dataset.only = '2';
 });
 
 /* bottom-right corner: turns the page on every screen */
@@ -409,24 +480,49 @@ PAGES.forEach(p => {
   b.dataset.only = String(p);
 });
 
-/* the map on "What's around" opens the nearby panel */
-const mapHot = mkHotspot(0.56, 0.50, 0.44, 0.38, 'Explore what is around', () => {
-  document.getElementById('nearbyOv').classList.add('open');
+/* the map on "What's around" opens the interactive nearby map */
+const mapHot = mkHotspot(0.56, 0.50, 0.44, 0.38, 'Explore what is around', openNearby);
+mapHot.dataset.only = '3';
+
+/* real QR code overlay + actions on the Phone QR screen */
+const qrImg = document.createElement('img');
+qrImg.className = 'ov';
+qrImg.src = 'assets/qr.png';
+qrImg.alt = 'Scan to open the demo';
+qrImg.style.cssText = 'position:absolute;left:57.8%;top:35.3%;width:32.2%;height:55.2%;object-fit:contain;background:#fff;z-index:11;';
+qrImg.dataset.only = '6';
+stage.appendChild(qrImg);
+
+[[0.078, 0.932, 0.092, 0.058, 'Share link', copyLink],
+ [0.200, 0.932, 0.090, 0.058, 'Copy link', copyLink],
+ [0.340, 0.932, 0.080, 0.058, 'Print QR', () => toast('QR code ready to print (demo build)')]
+].forEach(([x, y, w, h, a, fn]) => {
+  const b = mkHotspot(x, y, w, h, a, fn);
+  b.dataset.only = '6';
 });
-mapHot.dataset.only = '4';
+
+/* MRV quick views on the My Constructions screen */
+[[0.483, 0.651, 0.170, 0.053, 'View your calendar', () => openPreview('calendar')],
+ [0.777, 0.651, 0.200, 0.053, 'View your observations', () => openPreview('observations')],
+ [0.475, 0.862, 0.150, 0.053, 'View predictions', () => openPreview('predictions')]
+].forEach(([x, y, w, h, a, fn]) => {
+  const b = mkHotspot(x, y, w, h, a, fn);
+  b.dataset.only = '9';
+});
 
 /* ============ page switching ============ */
 function refreshHotspotVisibility(){
-  document.querySelectorAll('.hs[data-only]').forEach(b => {
-    b.style.display = (String(cur) === b.dataset.only) ? 'block' : 'none';
+  document.querySelectorAll('.hs[data-only], .ov[data-only]').forEach(b => {
+    const only = String(b.dataset.only || '');
+    b.style.display = only.split(',').includes(String(cur)) ? 'block' : 'none';
   });
   // nav underline per section
   let sec = null;
-  if (cur <= 3) sec = 'home';
-  else if (cur >= 4 && cur <= 7) sec = 'tools';
-  else if (cur === 8) sec = 'about';
-  else if (cur === 9) sec = 'feas';
-  else if (cur === 10) sec = 'constr';
+  if (cur <= 2) sec = 'home';
+  else if (cur >= 3 && cur <= 6) sec = 'tools';
+  else if (cur === 7) sec = 'about';
+  else if (cur === 8) sec = 'feas';
+  else if (cur >= 9) sec = 'constr';
   if (sec){
     const [sx, sw] = SECTION[sec];
     navline.style.left = (sx * 100) + '%';
@@ -457,6 +553,90 @@ function toggleTools(){
 toolsMenu.querySelectorAll('button').forEach(b => {
   b.addEventListener('click', e => { e.stopPropagation(); go(Number(b.dataset.goto)); });
 });
+
+/* ============ helpers: toast, clipboard, live map, previews ============ */
+let _toastTimer = null;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('on'), 2400);
+}
+function copyLink(){
+  const url = location.href.split('?')[0];
+  const done = () => toast('Demo link copied. Open it on your phone.');
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(done, () => fallbackCopy(url, done));
+  } else {
+    fallbackCopy(url, done);
+  }
+}
+function fallbackCopy(text, done){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); } catch(e) { toast('Copy not supported here.'); }
+  ta.remove();
+}
+
+let reconMap = null;
+function openNearby(){
+  document.getElementById('nearbyOv').classList.add('open');
+  if (!reconMap){
+    reconMap = L.map('mapCanvas', {scrollWheelZoom: true}).setView([-33.7725, 151.1652], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    }).addTo(reconMap);
+    const mk = (la, ln, color, text) => L.circleMarker([la, ln], {radius: 8, color: color, fillColor: color, fillOpacity: 1, weight: 2}).addTo(reconMap).bindPopup(text);
+    mk(-33.7748, 151.1690, '#E1824F', '<b>12 Jacaranda Street</b><br>Your property');
+    mk(-33.7680, 151.1580, '#286359', 'Council upgrade: stormwater resilience (2026)');
+    mk(-33.7795, 151.1730, '#286359', 'Council upgrade: street canopy program (2026)');
+    mk(-33.7705, 151.1775, '#286359', 'Council upgrade: bushfire-ready verges (2027)');
+    mk(-33.7835, 151.1492, '#B5BFA1', 'Lane Cove National Park (2.4 km)');
+  }
+  setTimeout(() => { if (reconMap) reconMap.invalidateSize(); }, 80);
+}
+
+const PREVIEWS = {
+  calendar: { t: ['Your', 'calendar'], sub: 'Upcoming works and checks for 12 Jacaranda Street.', items: [
+    'Oct 12 · Sensor battery service',
+    'Nov 3 · Installer assessment (carbon brick plan)',
+    'Mar 2027 · Phase 1 works begin',
+    'Jun 2027 · Post-build MRV report'] },
+  observations: { t: ['Your', 'observations'], sub: 'What the sensor kit recorded over the last 12 months.', items: [
+    'Peak surface temperature 41.2°C · Feb',
+    'Moisture events: 6 · last 12 months',
+    'Thermal cycles: 218 · last 12 months',
+    'Sensor uptime: 99.2%'] },
+  predictions: { t: ['Your', 'predictions'], sub: 'Failure forecast from the demo model.', items: [
+    'North wall cladding · 78% risk by 2033',
+    'Window lintels · 50% risk by 2036',
+    'West wall base · 52% risk by 2038',
+    'Model v2.4 · illustrative demo data'] }
+};
+function openPreview(kind){
+  const p = PREVIEWS[kind];
+  if (!p) return;
+  document.getElementById('previewTitle').innerHTML = '<span class="g">' + p.t[0] + '</span> <span class="o">' + p.t[1] + '</span>';
+  document.getElementById('previewSub').textContent = p.sub;
+  const list = document.getElementById('previewList');
+  list.innerHTML = '';
+  p.items.forEach(it => {
+    const row = document.createElement('div');
+    row.className = 'sl done show';
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    const txt = document.createElement('span');
+    txt.textContent = it;
+    row.appendChild(dot);
+    row.appendChild(txt);
+    list.appendChild(row);
+  });
+  document.getElementById('previewOv').classList.add('open');
+}
 document.addEventListener('click', () => toolsMenu.classList.remove('open'));
 
 /* ============ scan overlay (feasibility page) ============ */
@@ -500,6 +680,12 @@ document.getElementById('nearbyClose').addEventListener('click', () => {
 document.getElementById('nearbyOv').addEventListener('click', e => {
   if (e.target === document.getElementById('nearbyOv')) document.getElementById('nearbyOv').classList.remove('open');
 });
+document.getElementById('previewClose').addEventListener('click', () => {
+  document.getElementById('previewOv').classList.remove('open');
+});
+document.getElementById('previewOv').addEventListener('click', e => {
+  if (e.target === document.getElementById('previewOv')) document.getElementById('previewOv').classList.remove('open');
+});
 
 /* ============ edge nav + keyboard ============ */
 document.getElementById('edgeL').addEventListener('click', () => go(cur - 1));
@@ -507,7 +693,7 @@ document.getElementById('edgeR').addEventListener('click', () => go(cur + 1));
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
   else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
-  else if (e.key === 'Escape') { toolsMenu.classList.remove('open'); scanOv.classList.remove('open'); document.getElementById('nearbyOv').classList.remove('open'); }
+  else if (e.key === 'Escape') { toolsMenu.classList.remove('open'); scanOv.classList.remove('open'); document.getElementById('nearbyOv').classList.remove('open'); document.getElementById('previewOv').classList.remove('open'); }
   else if (/^[1-9]$/.test(e.key)) { go(Number(e.key)); }
   else if (e.key === '0') { go(10); }
 });

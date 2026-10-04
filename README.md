@@ -13,12 +13,15 @@ and assembled into a clickable app demo. No redrawn visuals: what you see is the
 
 | Element | Action |
 |---|---|
+| Hamburger icon (top-left) | opens the menu screen |
 | Nav: Home / About / Feasibility / My Constructions | switches to the matching screen |
-| Nav: Tools | opens the Tools menu screen |
+| Nav: Tools (on tools screens) | opens the menu screen |
 | Tools menu items (What's around, Preventing collapse, Data sources, Phone QR) | opens that tool's screen |
 | Home: "View feasibility" | opens the feasibility screen |
 | Feasibility: "Analyse my building" | plays the scan animation overlay |
-| Map on "What's around" | opens the nearby panel |
+| Map on "What's around" | opens a live interactive map (pan, zoom, clickable markers) |
+| Phone QR screen | real scannable QR code; "Copy link" copies the demo URL |
+| MRV: "View your calendar / observations / predictions" | opens the matching panel |
 | Bottom-right corner of any screen | turns to the next screen |
 | Left / right screen edges | prev / next screen (arrow visible at rest) |
 | Keys 1-9, 0 | jump to screen 1-10 |
