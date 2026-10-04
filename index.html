@@ -48,7 +48,7 @@ body{
   height:100%;
   object-fit:cover;
   opacity:0;
-  transition:opacity .28s ease;
+  transition:opacity .55s ease;
   user-select:none;
   -webkit-user-drag:none;
 }
@@ -62,6 +62,7 @@ body{
   cursor:pointer;
   z-index:10;
   padding:0;
+  transition:background .25s;
 }
 .hs:focus-visible{outline:2px solid var(--btn);outline-offset:2px}
 .hs:hover{background:rgba(40,99,89,.07)}
@@ -72,7 +73,7 @@ body{
   height:0.45%;
   background:var(--green);
   z-index:9;
-  transition:left .25s ease,width .25s ease,opacity .2s;
+  transition:left .5s ease,width .5s ease,opacity .4s;
   border-radius:0;
   pointer-events:none;
 }
@@ -148,7 +149,7 @@ body{
   color:#3E4A44;
   opacity:0;
   transform:translateY(3px);
-  transition:opacity .3s,transform .3s;
+  transition:opacity .5s,transform .5s;
 }
 .sl.show{opacity:1;transform:none}
 .sl .dot{
@@ -167,7 +168,7 @@ body{
 #scanBar i{
   display:block;height:100%;width:0;
   background:var(--green);
-  transition:width .45s;
+  transition:width .8s;
 }
 #scanDone{
   display:none;
@@ -263,7 +264,7 @@ body{
   font-size:clamp(9px,.92vw,13px);
   padding:.75em 1.2em;
   opacity:0;
-  transition:opacity .25s,transform .25s;
+  transition:opacity .35s,transform .35s;
   pointer-events:none;
   z-index:60;
   max-width:80%;
@@ -276,7 +277,7 @@ body{
 .layer{position:absolute;z-index:8;pointer-events:none}
 .layer .h{font-weight:700;font-size:clamp(7.5px,min(1.38vw,2.454vh),19px);color:var(--green);margin-bottom:.45em;letter-spacing:.01em}
 .layer .p{font-size:clamp(7px,min(1.3vw,2.311vh),18px);line-height:1.55;color:#15201B}
-.layer .m{font-family:var(--mono);font-size:clamp(6.5px,min(1vw,1.778vh),14px);line-height:1.6;color:#5B6560}
+.layer .m{font-family:var(--mono);font-size:clamp(6px,min(.94vw,1.671vh),13px);line-height:1.6;color:#5B6560}
 .layer .q{font-weight:700;font-size:clamp(9px,min(1.45vw,2.578vh),20px);color:var(--green);line-height:1.32;letter-spacing:-.01em}
 .layer .a{font-family:var(--mono);font-size:clamp(6.5px,min(.95vw,1.689vh),13px);color:#5B6560;margin-top:.55em}
 .layer.qblock{box-sizing:border-box;border-left:2px solid var(--green);padding-left:3%}
@@ -285,9 +286,9 @@ body{
 @keyframes layerIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
-.layer{animation:layerIn .55s cubic-bezier(.2,.75,.3,1) both}
-#scanOv.open,#nearbyOv.open,#previewOv.open{animation:fadeIn .26s ease both}
-#scanCard,#nearbyCard,#previewCard{animation:popIn .42s cubic-bezier(.2,.8,.25,1) both}
+.layer{animation:layerIn .95s cubic-bezier(.2,.75,.3,1) both}
+#scanOv.open,#nearbyOv.open,#previewOv.open{animation:fadeIn .45s ease both}
+#scanCard,#nearbyCard,#previewCard{animation:popIn .7s cubic-bezier(.2,.8,.25,1) both}
 @media (prefers-reduced-motion: reduce){
   .layer,#scanCard,#nearbyCard,#previewCard,#scanOv.open,#nearbyOv.open,#previewOv.open{animation:none !important}
   .edge span{transition:none !important}
@@ -303,7 +304,7 @@ body{
   border:none;
   cursor:pointer;
   opacity:.45;
-  transition:opacity .2s;
+  transition:opacity .35s;
 }
 .edge:hover{opacity:1}
 .edge span{
@@ -319,7 +320,7 @@ body{
   align-items:center;
   justify-content:center;
   font-family:var(--mono);
-  transition:transform .18s ease, background .18s ease;
+  transition:transform .3s ease, background .3s ease;
 }
 .edge:hover span{transform:translate(-50%,-50%) scale(1.09)}
 /* on the menu screen the left button drops below the menu items */
@@ -586,7 +587,7 @@ const TEXTS = [
     html: '<div class="p">What we monitor, we can manage. Sensor history and forecasts are reviewed each season, and every prediction is checked against what actually happened.</div>' },
   { p: 10, x: 0.045, y: 0.27, w: 0.22,
     html: '<div class="h">One record per project</div><div class="p">Monitoring, predictions, site notes and updates stay together, from the first scan through to handover.</div>' },
-  { p: 3, x: 0.10, y: 0.875, w: 0.31,
+  { p: 3, x: 0.077, y: 0.885, w: 0.52,
     html: '<div class="m">Illustrative demo data. Live council and climate feeds connect in the product build.</div>' }
 ];
 const _txtIdx = {};
@@ -595,7 +596,7 @@ TEXTS.forEach(t => {
   d.className = 'layer ov' + (t.cls ? ' ' + t.cls : '');
   d.style.cssText = 'left:' + (t.x * 100) + '%;top:' + (t.y * 100) + '%;width:' + (t.w * 100) + '%;';
   _txtIdx[t.p] = (_txtIdx[t.p] || 0) + 1;
-  d.style.animationDelay = (0.07 * (_txtIdx[t.p] - 1)) + 's';
+  d.style.animationDelay = (0.12 * (_txtIdx[t.p] - 1)) + 's';
   d.dataset.only = String(t.p);
   d.innerHTML = t.html;
   stage.appendChild(d);
